@@ -5,7 +5,7 @@ from functools import wraps
 from pythonjsonlogger import jsonlogger
 from flask import Flask, redirect, render_template, request, send_from_directory, Response, make_response
 
-log_file = 'dumpass.log'
+log_file = 'dumpass.json'
 logger = logging.getLogger('honeypot')
 logger.setLevel(logging.DEBUG)
 fh = logging.FileHandler(log_file)
@@ -157,7 +157,7 @@ def create_app(test_config=None):
                 password = request.form["password"]
             if "passwordText" in request.form:
                 passwordText = request.form["passwordText"]
-            logger.info({ "url": request.base_url, "username": username, "password": password, "ip": ip, "ua": ua})
+            logger.info("attempted login", extra={"url": request.base_url, "username": username, "password": password, "ip": ip, "ua": ua})
             return redirect('/owa/auth/logon.aspx?replaceCurrent=1&reason=2&url=', 302)
 
     @app.route('/owa/auth/logon.aspx', methods=['GET'])
