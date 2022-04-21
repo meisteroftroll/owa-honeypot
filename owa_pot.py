@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from functools import wraps
+from pythonjsonlogger import jsonlogger
 from flask import Flask, redirect, render_template, request, send_from_directory, Response, make_response
 
 log_file = 'dumpass.log'
@@ -11,9 +12,10 @@ fh = logging.FileHandler(log_file)
 fh.setLevel(logging.DEBUG)
 
 # create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh.setFormatter(formatter)
-logger.addHandler(fh)
+logHandler = logging.StreamHandler()
+formatter = jsonlogger.JsonFormatter()
+logHandler.setFormatter(formatter)
+logger.addHandler(logHandler)
 
 
 def create_app(test_config=None):
