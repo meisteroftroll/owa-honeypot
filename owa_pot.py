@@ -12,10 +12,9 @@ fh = logging.FileHandler(log_file)
 fh.setLevel(logging.DEBUG)
 
 # create formatter and add it to the handlers
-logHandler = logging.StreamHandler()
 formatter = jsonlogger.JsonFormatter()
-logHandler.setFormatter(formatter)
-logger.addHandler(logHandler)
+fh.setFormatter(formatter)
+logger.addHandler(fh)
 
 
 def create_app(test_config=None):
@@ -158,7 +157,7 @@ def create_app(test_config=None):
                 password = request.form["password"]
             if "passwordText" in request.form:
                 passwordText = request.form["passwordText"]
-            logger.info(f"{request.base_url}|{username}:{password}|{ip}|{ua}")
+            logger.info({ "url": request.base_url, "username": username, "password": password, "ip": ip, "ua": ua})
             return redirect('/owa/auth/logon.aspx?replaceCurrent=1&reason=2&url=', 302)
 
     @app.route('/owa/auth/logon.aspx', methods=['GET'])
