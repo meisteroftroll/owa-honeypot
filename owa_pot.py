@@ -146,6 +146,7 @@ def create_app(test_config=None):
         ua = request.headers.get('User-Agent')
         ip = request.remote_addr
         if request.method == 'GET':
+            logger.info("URL editted manually", extra={"url": request.url, "ip": ip, "ua": ua})
             return redirect('/owa/auth/logon.aspx?replaceCurrent=1&reason=3&url=', 302)
         else:
             passwordText = ""
