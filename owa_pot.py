@@ -1,3 +1,5 @@
+from importlib.resources import path
+from nturl2path import url2pathname
 import os
 import json
 import logging
@@ -124,21 +126,32 @@ def create_app(test_config=None):
     def stub_redirect():
         return redirect('/')
 
-
+    @app.route('/<path:path>', methods=['GET', 'POST'])
+    def catch_all(path):
+        ua = request.headers.get('User-Agent')
+        ip = request.remote_addr
+        
+        if request.referrer == request.url:
+            logger.info("Refreshing", extra={"url": request.url, "ip": ip, "ua": ua})
+            return render_template("outlook_web.html")
+        
+        logger.info("Attempt to change URL", extra={"url": request.url, "method": request.method, "ip": ip, "ua": ua})
+        return render_template("outlook_web.html")  
+    
     @app.route('/owa/auth/15.1.1466/themes/resources/segoeui-regular.ttf', methods=['GET'])
     @changeheader
     def font_segoeui_regular_ttf():
-        return send_from_directory(app.static_folder, filename='segoeui-regular.ttf', conditional=True)
+        return send_from_directory(app.static_folder, path='segoeui-regular.ttf', conditional=True)
         
     @app.route('/owa/auth/15.1.1466/themes/resources/segoeui-semilight.ttf', methods=['GET'])
     @changeheader
     def font_segoeui_semilight_ttf():
-        return send_from_directory(app.static_folder, filename='segoeui-semilight.ttf', conditional=True)
+        return send_from_directory(app.static_folder, path='segoeui-semilight.ttf', conditional=True)
 
     @app.route('/owa/auth/15.1.1466/themes/resources/favicon.ico', methods=['GET'])
     @changeheader
     def favicon_ico():
-        return send_from_directory(app.static_folder, filename='favicon.ico', conditional=True)
+        return send_from_directory(app.static_folder, path='favicon.ico', conditional=True)
 
     @app.route('/owa/auth.owa', methods=['GET', 'POST'])
     @changeheader
@@ -157,12 +170,19 @@ def create_app(test_config=None):
                 password = request.form["password"]
             if "passwordText" in request.form:
                 passwordText = request.form["passwordText"]
-            logger.info("attempted login", extra={"url": request.base_url, "username": username, "password": password, "ip": ip, "ua": ua})
+            logger.info("Attempted Login", extra={"url": request.base_url, "method": request.method, "username": username, "password": password, "ip": ip, "ua": ua})
             return redirect('/owa/auth/logon.aspx?replaceCurrent=1&reason=2&url=', 302)
 
-    @app.route('/owa/auth/logon.aspx', methods=['GET'])
+    @app.route('/owa/auth/logon.aspx', methods=['GET', 'POST'])
     @changeheader
     def owa():
+        ua = request.headers.get('User-Agent')
+        ip = request.remote_addr
+        if request.referrer == request.url:
+            logger.info("Refreshing", extra={"url": request.url, "ip": ip, "ua": ua})
+            return render_template("outlook_web.html")
+        
+        logger.info("Attempt to change URL", extra={"url": request.url, "method": request.method, "referer": request.referrer, "ip": ip, "ua": ua})
         return render_template("outlook_web.html")  
 
     @app.route('/')
@@ -172,9 +192,6 @@ def create_app(test_config=None):
     @app.route('/webmail')
     @changeheader
     def index():
-        ua = request.headers.get('User-Agent')
-        ip = request.remote_addr
-        logger.info("URL editted manually", extra={"url": request.url, "ip": ip, "ua": ua})
         return redirect('/owa/auth/logon.aspx?replaceCurrent=1&url=', 302)          
 
     return app
