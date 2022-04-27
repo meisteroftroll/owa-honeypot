@@ -1,3 +1,4 @@
+from base64 import encode
 from importlib.resources import path
 from nturl2path import url2pathname
 import os
@@ -10,14 +11,14 @@ from flask import Flask, redirect, render_template, request, send_from_directory
 log_file = 'dumpass.json'
 logger = logging.getLogger('honeypot')
 logger.setLevel(logging.DEBUG)
+logging.basicConfig(encoding='utf-8')
 fh = logging.FileHandler(log_file)
 fh.setLevel(logging.DEBUG)
 
 # create formatter and add it to the handlers
-formatter = jsonlogger.JsonFormatter()
+formatter = jsonlogger.JsonFormatter(json_ensure_ascii = False)
 fh.setFormatter(formatter)
 logger.addHandler(fh)
-
 
 def create_app(test_config=None):
 
@@ -130,12 +131,25 @@ def create_app(test_config=None):
     def catch_all(path):
         ua = request.headers.get('User-Agent')
         ip = request.remote_addr
-        
+        encoded_request_data = str(request.data, errors='replace', encoding='unicode-escape')
+
         if request.referrer == request.url:
-            logger.info("Refreshing", extra={"url": request.url, "method": request.method, "data": request.data, "referer": request.referrer, "ip": ip, "ua": ua})
+            logger.info("Refreshing", extra={
+                "url": request.url, 
+                "method": request.method, 
+                "data": encoded_request_data, 
+                "referer": request.referrer, 
+                "ip": ip, 
+                "ua": ua})
             return render_template("outlook_web.html")
-        
-        logger.info("Attempt to change URL", extra={"url": request.url, "method": request.method, "data": request.data, "referer": request.referrer, "ip": ip, "ua": ua})
+
+        logger.info("Attempt to change URL", extra={
+            "url": request.url, 
+            "method": request.method, 
+            "data": request.data, 
+            "referer": request.referrer, 
+            "ip": ip, 
+            "ua": ua})
         return render_template("outlook_web.html")  
     
     @app.route('/owa/auth/15.1.1466/themes/resources/segoeui-regular.ttf', methods=['GET'])
@@ -170,7 +184,16 @@ def create_app(test_config=None):
                 password = request.form["password"]
             if "passwordText" in request.form:
                 passwordText = request.form["passwordText"]
-            logger.info("Attempted Login", extra={"url": request.base_url, "method": request.method,  "data": request.form, "file": request.files, "username": username, "password": password, "ip": ip, "ua": ua})
+            logger.info("Attempted Login", extra={
+                "url": request.base_url, 
+                "method": request.method,  
+                "data": request.form, 
+                "file": request.files, 
+                "username": username, 
+                "password": password, 
+                "ip": ip, 
+                "ua": ua})
+            
             #logger.info("TEST", extra={"Args": request.args, "form": request.form, "files": request.files, "values": request.values, "json": request.json})
             return redirect('/owa/auth/logon.aspx?replaceCurrent=1&reason=2&url=', 302)
 
@@ -179,11 +202,15 @@ def create_app(test_config=None):
     def owa():
         ua = request.headers.get('User-Agent')
         ip = request.remote_addr
-        #if request.referrer == request.url:
-        #    logger.info("Refreshing", extra={"url": request.url, "ip": ip, "ua": ua})
-        #    return render_template("outlook_web.html")
-        logger.info("Attempt to change URL", extra={"url": request.url, "method": request.method, "data": request.data, "referer": request.referrer, "ip": ip, "ua": ua})
-        return render_template("outlook_web.html")  
+        encoded_request_data = str(request.data, errors='replace', encoding='unicode-escape')
+        logger.info("Attempt to change URL", extra={
+            "url": request.url,
+            "method": request.method, 
+            "data": encoded_request_data , 
+            "referer": request.referrer, 
+            "ip": ip, 
+            "ua": ua})
+        return render_template("outlook_web.html") 
 
     @app.route('/')
     @app.route('/exchange/')
