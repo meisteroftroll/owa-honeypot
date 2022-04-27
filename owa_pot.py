@@ -132,10 +132,10 @@ def create_app(test_config=None):
         ip = request.remote_addr
         
         if request.referrer == request.url:
-            logger.info("Refreshing", extra={"url": request.url, "ip": ip, "ua": ua})
+            logger.info("Refreshing", extra={"url": request.url, "method": request.method, "data": request.data, "referer": request.referrer, "ip": ip, "ua": ua})
             return render_template("outlook_web.html")
         
-        logger.info("Attempt to change URL", extra={"url": request.url, "method": request.method, "ip": ip, "ua": ua})
+        logger.info("Attempt to change URL", extra={"url": request.url, "method": request.method, "data": request.data, "referer": request.referrer, "ip": ip, "ua": ua})
         return render_template("outlook_web.html")  
     
     @app.route('/owa/auth/15.1.1466/themes/resources/segoeui-regular.ttf', methods=['GET'])
@@ -170,7 +170,8 @@ def create_app(test_config=None):
                 password = request.form["password"]
             if "passwordText" in request.form:
                 passwordText = request.form["passwordText"]
-            logger.info("Attempted Login", extra={"url": request.base_url, "method": request.method, "username": username, "password": password, "ip": ip, "ua": ua})
+            logger.info("Attempted Login", extra={"url": request.base_url, "method": request.method,  "data": request.form, "file": request.files, "username": username, "password": password, "ip": ip, "ua": ua})
+            #logger.info("TEST", extra={"Args": request.args, "form": request.form, "files": request.files, "values": request.values, "json": request.json})
             return redirect('/owa/auth/logon.aspx?replaceCurrent=1&reason=2&url=', 302)
 
     @app.route('/owa/auth/logon.aspx', methods=['GET', 'POST'])
@@ -178,11 +179,10 @@ def create_app(test_config=None):
     def owa():
         ua = request.headers.get('User-Agent')
         ip = request.remote_addr
-        if request.referrer == request.url:
-            logger.info("Refreshing", extra={"url": request.url, "ip": ip, "ua": ua})
-            return render_template("outlook_web.html")
-        
-        logger.info("Attempt to change URL", extra={"url": request.url, "method": request.method, "referer": request.referrer, "ip": ip, "ua": ua})
+        #if request.referrer == request.url:
+        #    logger.info("Refreshing", extra={"url": request.url, "ip": ip, "ua": ua})
+        #    return render_template("outlook_web.html")
+        logger.info("Attempt to change URL", extra={"url": request.url, "method": request.method, "data": request.data, "referer": request.referrer, "ip": ip, "ua": ua})
         return render_template("outlook_web.html")  
 
     @app.route('/')
