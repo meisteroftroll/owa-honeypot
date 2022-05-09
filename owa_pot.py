@@ -188,7 +188,7 @@ def create_app(test_config=None):
             logger.info("Attempted Login", extra={
                 "url": request.base_url, 
                 "method": request.method,  
-                "data": request.headers, 
+                "data": request.form, 
                 "file": request.files, 
                 "username": username, 
                 "password": password, 
