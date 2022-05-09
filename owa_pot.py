@@ -184,20 +184,19 @@ def create_app(test_config=None):
                 password = request.form["password"]
             if "passwordText" in request.form:
                 passwordText = request.form["passwordText"]
+            
             logger.info("Attempted Login", extra={
                 "url": request.base_url, 
                 "method": request.method,  
-                "data": request.form, 
+                "data": request.headers, 
                 "file": request.files, 
                 "username": username, 
                 "password": password, 
                 "ip": ip, 
                 "ua": ua})
-            
-            #logger.info("TEST", extra={"Args": request.args, "form": request.form, "files": request.files, "values": request.values, "json": request.json})
             return redirect('/owa/auth/logon.aspx?replaceCurrent=1&reason=2&url=', 302)
 
-    @app.route('/owa/auth/logon.aspx', methods=['GET', 'POST'])
+    @app.route('/owa/auth/logon.aspx')
     @changeheader
     def owa():
         ua = request.headers.get('User-Agent')
