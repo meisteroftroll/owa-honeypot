@@ -137,7 +137,7 @@ def create_app(test_config=None):
             logger.info("Refreshing", extra={
                 "url": request.url, 
                 "method": request.method, 
-                "data": encoded_request_data, 
+                "refreshing_data": encoded_request_data, 
                 "referer": request.referrer, 
                 "ip": ip, 
                 "ua": ua})
@@ -146,7 +146,7 @@ def create_app(test_config=None):
         logger.info("Attempt to change URL", extra={
             "url": request.url, 
             "method": request.method, 
-            "data": request.data, 
+            "directory_changing_data": request.data, 
             "referer": request.referrer, 
             "ip": ip, 
             "ua": ua})
@@ -188,7 +188,7 @@ def create_app(test_config=None):
             logger.info("Attempted Login", extra={
                 "url": request.base_url, 
                 "method": request.method,  
-                "data": request.form, 
+                "login_data": request.form, 
                 "file": request.files, 
                 "username": username, 
                 "password": password, 
@@ -196,19 +196,33 @@ def create_app(test_config=None):
                 "ua": ua})
             return redirect('/owa/auth/logon.aspx?replaceCurrent=1&reason=2&url=', 302)
 
-    @app.route('/owa/auth/logon.aspx')
+    @app.route('/owa/auth/logon.aspx', methods=['GET', 'POST'])
     @changeheader
     def owa():
         ua = request.headers.get('User-Agent')
         ip = request.remote_addr
         encoded_request_data = str(request.data, errors='replace', encoding='unicode-escape')
-        logger.info("Attempt to change URL", extra={
-            "url": request.url,
-            "method": request.method, 
-            "data": encoded_request_data , 
-            "referer": request.referrer, 
-            "ip": ip, 
-            "ua": ua})
+        request_header = str(request.headers)
+        new_header = request_header.replace('\n', '\n ')
+        
+        if request.method == 'GET':
+            logger.info("Attempt to change URL", extra={
+                "url": request.url,
+                "method": request.method, 
+                "header": request.headers,
+                "get_data": encoded_request_data , 
+                "referer": request.referrer, 
+                "ip": ip, 
+                "ua": ua})
+        else:
+            logger.info("Attempt to change URL", extra={
+                "url": request.url,
+                "method": request.method, 
+                "header": request.headers,
+                "post_data": encoded_request_data , 
+                "referer": request.referrer, 
+                "ip": ip, 
+                "ua": ua})
         return render_template("outlook_web.html") 
 
     @app.route('/')
