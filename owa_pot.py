@@ -238,4 +238,4 @@ def create_app(test_config=None):
 
 if __name__ == "__main__":
     if __name__ == '__main__':
-        create_app().run(debug=False,port=80, host="0.0.0.0")
+        create_app().run(debug=False,port=8080, host="0.0.0.0")
